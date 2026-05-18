@@ -1,16 +1,15 @@
 name: CI
-
 on:
   workflow_dispatch: 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   checks:
     name: ${{ matrix.task }}
     runs-on: ubuntu-latest
+    env:
+      UV_NATIVE_TLS: "1"
     strategy:
       fail-fast: false
       matrix:
@@ -39,7 +38,6 @@ jobs:
             do_sync: true
             command: uv run --no-sync python scripts/docs_prebuild.py && uv run --no-sync zensical build --clean
             sync_args: --no-install-project --group docs
-
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
@@ -50,20 +48,16 @@ jobs:
       # ============= InvisiRisk Setup End =============
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.14"
           enable-cache: true
-
       - name: Install dependencies
         if: matrix.do_sync
         run: uv sync --frozen ${{ matrix.sync_args }}
-
       - name: Run check
         run: ${{ matrix.command }}
-
       - name: Add coverage to summary
         if: ${{ always() && matrix.task == 'pytest' }}
         run: |
@@ -79,10 +73,11 @@ jobs:
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
-
   notify-commit:
     name: notify-commit
     runs-on: ubuntu-latest
+    env:
+      UV_NATIVE_TLS: "1"
     needs: checks
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.checks.result == 'success' }}
     steps:
@@ -95,13 +90,11 @@ jobs:
       # ============= InvisiRisk Setup End =============
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.14"
           enable-cache: true
-
       - name: Send Telegram notification
         run: uv run scripts/commit_notify.py
         env:
