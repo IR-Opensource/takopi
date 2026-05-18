@@ -12,14 +12,6 @@ jobs:
     name: ${{ matrix.task }}
     runs-on: ubuntu-latest
 
-    # 🔥 DIRTY TLS BYPASS (forces all tools to ignore broken cert chain from PSE)
-    env:
-      UV_INSECURE_HOST: github.com,objects.githubusercontent.com,github-releases.githubusercontent.com
-      SSL_CERT_FILE: /dev/null
-      REQUESTS_CA_BUNDLE: /dev/null
-      CURL_CA_BUNDLE: /dev/null
-      GIT_SSL_NO_VERIFY: "true"
-
     strategy:
       fail-fast: false
       matrix:
@@ -57,6 +49,17 @@ jobs:
           api_url: 'https://app.stage.invisirisk.com'
           app_token: ${{secrets.IR_API_KEY}}
       # ============= InvisiRisk Setup End =============
+
+      # 🔥 FIX: restore broken TLS trust caused by PSE
+      - name: Fix TLS trust broken by PSE
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --reinstall ca-certificates
+          sudo update-ca-certificates
+
+          unset SSL_CERT_FILE
+          unset REQUESTS_CA_BUNDLE
+          unset CURL_CA_BUNDLE
 
       - name: Checkout
         uses: actions/checkout@v5
@@ -104,6 +107,17 @@ jobs:
           api_url: 'https://app.stage.invisirisk.com'
           app_token: ${{secrets.IR_API_KEY}}
       # ============= InvisiRisk Setup End =============
+
+      # 🔥 FIX: restore TLS trust again in second job
+      - name: Fix TLS trust broken by PSE
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --reinstall ca-certificates
+          sudo update-ca-certificates
+
+          unset SSL_CERT_FILE
+          unset REQUESTS_CA_BUNDLE
+          unset CURL_CA_BUNDLE
 
       - name: Checkout
         uses: actions/checkout@v5
