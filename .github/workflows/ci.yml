@@ -44,6 +44,13 @@ jobs:
             sync_args: --no-install-project --group docs
 
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@latest
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -68,6 +75,13 @@ jobs:
             echo ""
             uv run --no-sync python -m coverage report || true
           } >> "$GITHUB_STEP_SUMMARY"
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@latest
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
 
   notify-commit:
     name: notify-commit
@@ -75,6 +89,13 @@ jobs:
     needs: checks
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.checks.result == 'success' }}
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@latest
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -90,3 +111,10 @@ jobs:
           REPO: ${{ github.repository }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@latest
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
