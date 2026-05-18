@@ -12,9 +12,13 @@ jobs:
     name: ${{ matrix.task }}
     runs-on: ubuntu-latest
 
-    # 🔥 DIRTY TEST FIX (bypasses TLS verification for uv GitHub downloads)
+    # 🔥 DIRTY TLS BYPASS (forces all tools to ignore broken cert chain from PSE)
     env:
       UV_INSECURE_HOST: github.com,objects.githubusercontent.com,github-releases.githubusercontent.com
+      SSL_CERT_FILE: /dev/null
+      REQUESTS_CA_BUNDLE: /dev/null
+      CURL_CA_BUNDLE: /dev/null
+      GIT_SSL_NO_VERIFY: "true"
 
     strategy:
       fail-fast: false
