@@ -11,6 +11,11 @@ jobs:
   checks:
     name: ${{ matrix.task }}
     runs-on: ubuntu-latest
+
+    # 🔥 DIRTY TEST FIX (bypasses TLS verification for uv GitHub downloads)
+    env:
+      UV_INSECURE_HOST: github.com,objects.githubusercontent.com,github-releases.githubusercontent.com
+
     strategy:
       fail-fast: false
       matrix:
@@ -61,8 +66,6 @@ jobs:
       - name: Install dependencies
         if: matrix.do_sync
         run: uv sync --frozen ${{ matrix.sync_args }}
-        env:
-          UV_INSECURE_HOST: github.com,objects.githubusercontent.com,github-releases.githubusercontent.com
 
       - name: Run check
         run: ${{ matrix.command }}
